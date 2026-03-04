@@ -1,0 +1,18 @@
+{
+  "messageId": "550e8400-e29b-41d4-a716-446655440000",
+  "operation": "CREATE",
+  "sdpRequestId": null,
+  "subject": "VPN access not working",
+  "description": "User cannot connect to corporate VPN since this morning.",
+  "priority": "High",
+  "category": "Network",
+  "subCategory": "VPN",
+  "requester": {
+    "name": "Jane Doe",
+    "email": "jane.doe@example.com"
+  },
+  "note": null,
+  "status": null,
+  "customFields": {},
+  "timestamp": "2026-03-04T10:15:30Z"
+}
