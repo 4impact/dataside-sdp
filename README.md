@@ -1,6 +1,6 @@
 # ServiceDesk Plus Kafka Sink Connector
 
-A Spring Boot 3.4 / Java 25 application that consumes JSON messages from a Kafka topic and writes them to **ServiceDesk Plus (SDP)** via its REST API. No Kafka Connect framework is used — the application uses the Kafka Consumer API directly for maximum control.
+A Spring Boot 3.5 application that consumes JSON messages from a Kafka topic and writes them to **ServiceDesk Plus (SDP)** via its REST API. No Kafka Connect framework is used — the application uses the Kafka Consumer API directly for maximum control.
 
 ---
 
