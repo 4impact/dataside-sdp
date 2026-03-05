@@ -57,6 +57,23 @@ On any failure:
 
 **No Spring Kafka Connect** — This is a plain `@KafkaListener` application. There is no Kafka Connect runtime, no connector configuration JSON, and no worker process. `KafkaConsumerConfig` and `KafkaProducerConfig` are manual `@Bean` configurations.
 
+**Java 25 + Lombok** — Lombok annotation processing silently fails on Java 25 unless explicitly registered via `annotationProcessorPaths` in `maven-compiler-plugin`. The `pom.xml` already contains this configuration. If you ever see "cannot find symbol" errors for `log`, getters, builders, or constructors, check that this block is present in `<build><plugins>`:
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <configuration>
+        <annotationProcessorPaths>
+            <path>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+            </path>
+        </annotationProcessorPaths>
+    </configuration>
+</plugin>
+```
+
 ### Testing approach
 
 Tests are pure unit tests — no Spring context is loaded, no embedded Kafka broker.
