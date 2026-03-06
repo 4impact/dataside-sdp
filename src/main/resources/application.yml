@@ -17,6 +17,7 @@ spring:
 
 sdp:
   base-url: ${SDP_BASE_URL:https://helpdesk.example.com}
+  portal: ${SDP_PORTAL:your-portal-name}
   api-version: v3
   auth:
     type: ${SDP_AUTH_TYPE:API_KEY}   # API_KEY | OAUTH2

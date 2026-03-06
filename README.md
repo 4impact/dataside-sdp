@@ -8,7 +8,7 @@ A Spring Boot 3.5 application that consumes JSON messages from a Kafka topic and
 
 - **Four SDP operations**: `CREATE`, `UPDATE`, `ADD_NOTE`, `CLOSE`
 - **Configurable auth**: API Key or OAuth 2.0 client-credentials (auto-cached token)
-- **Retry with backoff**: Transient failures (5xx, 429, timeout) are retried up to N times with exponential backoff
+- **Retry with backoff**: Transient failures (5xx, 429, timeout, and SDP rate-limiting error 4015) are retried up to N times with exponential backoff
 - **Dead Letter Queue**: Permanent failures (4xx, schema errors) and exhausted retries are published to a configurable DLQ topic
 - **Manual offset commit**: Messages are only acknowledged after successful processing or DLQ dispatch
 - **Structured JSON logging**: MDC fields (`messageId`, `operation`, `sdpRequestId`) appear in every log line
@@ -58,6 +58,7 @@ All settings are driven by environment variables. See `src/main/resources/applic
 | `KAFKA_INPUT_TOPIC` | `sdp-requests` | Input topic |
 | `KAFKA_DLQ_TOPIC` | `sdp-requests-dlq` | Dead Letter Queue topic |
 | `SDP_BASE_URL` | `https://helpdesk.example.com` | SDP instance base URL |
+| `SDP_PORTAL` | _(empty)_ | SDP portal name (appears in API URL path as `/app/{portal}/`) |
 | `SDP_AUTH_TYPE` | `API_KEY` | `API_KEY` or `OAUTH2` |
 | `SDP_API_KEY` | _(empty)_ | API Key value |
 | `SDP_OAUTH_TOKEN_URL` | _(empty)_ | OAuth2 token endpoint |
@@ -88,6 +89,7 @@ docker run -d --name kafka -p 9092:9092 \
 
 # Run application
 export SDP_BASE_URL=https://your-sdp-instance.com
+export SDP_PORTAL=your-portal-name
 export SDP_API_KEY=your-api-key
 mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
@@ -106,6 +108,7 @@ docker build -t sdp-sink-connector .
 docker run -d \
   -e KAFKA_BOOTSTRAP_SERVERS=kafka:9092 \
   -e SDP_BASE_URL=https://your-sdp.example.com \
+  -e SDP_PORTAL=your-portal-name \
   -e SDP_AUTH_TYPE=API_KEY \
   -e SDP_API_KEY=your-api-key \
   -e KAFKA_INPUT_TOPIC=sdp-requests \

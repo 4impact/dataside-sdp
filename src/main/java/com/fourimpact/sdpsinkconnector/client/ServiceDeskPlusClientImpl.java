@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Slf4j
@@ -29,16 +30,19 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
     private final AuthStrategy authStrategy;
     private final ObjectMapper objectMapper;
     private final String baseUrl;
+    private final String portal;
     private final String apiVersion;
 
     public ServiceDeskPlusClientImpl(
             AuthStrategy authStrategy,
             ObjectMapper objectMapper,
             @Value("${sdp.base-url}") String baseUrl,
+            @Value("${sdp.portal}") String portal,
             @Value("${sdp.api-version:v3}") String apiVersion) {
         this.authStrategy = authStrategy;
         this.objectMapper = objectMapper;
         this.baseUrl = baseUrl;
+        this.portal = portal;
         this.apiVersion = apiVersion;
         this.restClient = RestClient.create();
     }
@@ -67,8 +71,15 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
                     .onStatus(this::isTransient, (req, res) -> {
                         throw new TransientSdpException("Transient HTTP " + res.getStatusCode());
                     })
-                    .onStatus(this::isPermanent, (req, res) -> {
+                    .onStatus(status -> isPermanent(status) && status.value() != 400, (req, res) -> {
                         throw new PermanentSdpException("Permanent HTTP " + res.getStatusCode());
+                    })
+                    .onStatus(status -> status.value() == 400, (req, res) -> {
+                        String body = new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8);
+                        if (isSdpRateLimitError(body)) {
+                            throw new TransientSdpException("Rate limited by SDP (error 4015)");
+                        }
+                        throw new PermanentSdpException("Permanent HTTP 400: " + body);
                     })
                     .body(String.class);
 
@@ -106,8 +117,15 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
                     .onStatus(this::isTransient, (req, res) -> {
                         throw new TransientSdpException("Transient HTTP " + res.getStatusCode());
                     })
-                    .onStatus(this::isPermanent, (req, res) -> {
+                    .onStatus(status -> isPermanent(status) && status.value() != 400, (req, res) -> {
                         throw new PermanentSdpException("Permanent HTTP " + res.getStatusCode());
+                    })
+                    .onStatus(status -> status.value() == 400, (req, res) -> {
+                        String body = new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8);
+                        if (isSdpRateLimitError(body)) {
+                            throw new TransientSdpException("Rate limited by SDP (error 4015)");
+                        }
+                        throw new PermanentSdpException("Permanent HTTP 400: " + body);
                     })
                     .toBodilessEntity();
         } catch (TransientSdpException | PermanentSdpException e) {
@@ -143,8 +161,15 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
                     .onStatus(this::isTransient, (req, res) -> {
                         throw new TransientSdpException("Transient HTTP " + res.getStatusCode());
                     })
-                    .onStatus(this::isPermanent, (req, res) -> {
+                    .onStatus(status -> isPermanent(status) && status.value() != 400, (req, res) -> {
                         throw new PermanentSdpException("Permanent HTTP " + res.getStatusCode());
+                    })
+                    .onStatus(status -> status.value() == 400, (req, res) -> {
+                        String body = new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8);
+                        if (isSdpRateLimitError(body)) {
+                            throw new TransientSdpException("Rate limited by SDP (error 4015)");
+                        }
+                        throw new PermanentSdpException("Permanent HTTP 400: " + body);
                     })
                     .toBodilessEntity();
         } catch (TransientSdpException | PermanentSdpException e) {
@@ -167,8 +192,8 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
             )
     )
     public void closeRequest(String requestId, SdpCloseRequestPayload payload) {
-        String url = buildUrl("/requests/" + requestId + "/close");
-        log.debug("POST {} - close request", url);
+        String url = buildUrl("/requests/" + requestId);
+        log.debug("PUT {} - close request", url);
         try {
             String requestBody = buildInputData(payload);
             restClient.put()
@@ -180,8 +205,15 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
                     .onStatus(this::isTransient, (req, res) -> {
                         throw new TransientSdpException("Transient HTTP " + res.getStatusCode());
                     })
-                    .onStatus(this::isPermanent, (req, res) -> {
+                    .onStatus(status -> isPermanent(status) && status.value() != 400, (req, res) -> {
                         throw new PermanentSdpException("Permanent HTTP " + res.getStatusCode());
+                    })
+                    .onStatus(status -> status.value() == 400, (req, res) -> {
+                        String body = new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8);
+                        if (isSdpRateLimitError(body)) {
+                            throw new TransientSdpException("Rate limited by SDP (error 4015)");
+                        }
+                        throw new PermanentSdpException("Permanent HTTP 400: " + body);
                     })
                     .toBodilessEntity();
         } catch (TransientSdpException | PermanentSdpException e) {
@@ -194,7 +226,7 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
     }
 
     private String buildUrl(String path) {
-        return baseUrl + "/api/" + apiVersion + path;
+        return baseUrl + "/app/" + portal + "/api/" + apiVersion + path;
     }
 
     private boolean isTransient(HttpStatusCode status) {
@@ -205,6 +237,16 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
     private boolean isPermanent(HttpStatusCode status) {
         int code = status.value();
         return code == 400 || code == 401 || code == 403 || code == 404 || code == 422;
+    }
+
+    private boolean isSdpRateLimitError(String body) {
+        try {
+            JsonNode root = objectMapper.readTree(body);
+            JsonNode statusCode = root.path("response_status").path("status_code");
+            return !statusCode.isMissingNode() && statusCode.asInt() == 4015;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private String buildInputData(Object payload) {
