@@ -45,6 +45,13 @@ A Spring Boot 3.5 application that consumes JSON messages from a Kafka topic and
   "status": null,
   "updateReason": null,
   "closureComments": null,
+  "resolution": null,
+  "impactDetails": null,
+  "sla": null,
+  "level": null,
+  "item": null,
+  "isFcr": null,
+  "statusChangeComments": null,
   "customFields": {},
   "timestamp": "2026-03-04T10:15:30Z"
 }
@@ -65,6 +72,13 @@ A Spring Boot 3.5 application that consumes JSON messages from a Kafka topic and
 | `emailIdsToNotify` | `CREATE`, `UPDATE` | Array of email addresses |
 | `updateReason` | `UPDATE` | Audit trail reason for the change |
 | `closureComments` | `CLOSE` | Comment recorded when closing |
+| `resolution` | `CREATE`, `UPDATE` | Resolution text (mapped to `resolution.content`) |
+| `impactDetails` | `CREATE`, `UPDATE` | Free-text impact description |
+| `sla` | `CREATE`, `UPDATE` | SLA name |
+| `level` | `CREATE`, `UPDATE` | Request level name |
+| `item` | `CREATE`, `UPDATE` | Item name |
+| `isFcr` | `CREATE`, `UPDATE` | First contact resolution flag |
+| `statusChangeComments` | `CREATE`, `UPDATE` | Comment attached to a status change |
 | `customFields` | `CREATE`, `UPDATE` | Map of UDF field keys to values |
 
 ---

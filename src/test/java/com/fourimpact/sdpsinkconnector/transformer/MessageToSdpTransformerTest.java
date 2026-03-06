@@ -61,6 +61,19 @@ class MessageToSdpTransformerTest {
     }
 
     @Test
+    void toCreatePayload_mapsResolution() {
+        KafkaMessage msg = KafkaMessage.builder()
+                .operation(OperationType.CREATE)
+                .subject("Test")
+                .resolution("Resolution content")
+                .build();
+
+        SdpCreateRequestPayload payload = transformer.toCreatePayload(msg);
+
+        assertThat(payload.getResolution().getContent()).isEqualTo("Resolution content");
+    }
+
+    @Test
     void toCreatePayload_nullOptionalFields_producesNullInPayload() {
         KafkaMessage msg = KafkaMessage.builder()
                 .operation(OperationType.CREATE)

@@ -42,6 +42,13 @@ public class MessageToSdpTransformer {
                 .requester(requester)
                 .email_ids_to_notify(message.getEmailIdsToNotify())
                 .udf_fields(message.getCustomFields())
+                .resolution(resolutionEntity(message.getResolution()))
+                .impact_details(message.getImpactDetails())
+                .sla(namedEntity(message.getSla()))
+                .level(namedEntity(message.getLevel()))
+                .item(namedEntity(message.getItem()))
+                .is_fcr(message.getIsFcr())
+                .status_change_comments(message.getStatusChangeComments())
                 .build();
     }
 
@@ -66,6 +73,13 @@ public class MessageToSdpTransformer {
                 .email_ids_to_notify(message.getEmailIdsToNotify())
                 .udf_fields(message.getCustomFields())
                 .update_reason(message.getUpdateReason())
+                .status_change_comments(message.getStatusChangeComments())
+                .resolution(updateResolutionEntity(message.getResolution()))
+                .impact_details(message.getImpactDetails())
+                .sla(updateNamedEntity(message.getSla()))
+                .level(updateNamedEntity(message.getLevel()))
+                .item(updateNamedEntity(message.getItem()))
+                .is_fcr(message.getIsFcr())
                 .build();
     }
 
@@ -98,6 +112,16 @@ public class MessageToSdpTransformer {
             throw new PermanentSdpException(
                     operation + " operation requires sdpRequestId but it was null or blank");
         }
+    }
+
+    private SdpCreateRequestPayload.SdpResolution resolutionEntity(String content) {
+        if (content == null || content.isBlank()) return null;
+        return SdpCreateRequestPayload.SdpResolution.builder().content(content).build();
+    }
+
+    private SdpUpdateRequestPayload.SdpResolution updateResolutionEntity(String content) {
+        if (content == null || content.isBlank()) return null;
+        return SdpUpdateRequestPayload.SdpResolution.builder().content(content).build();
     }
 
     private SdpCreateRequestPayload.SdpNamedEntity namedEntity(String name) {

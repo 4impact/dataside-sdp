@@ -40,6 +40,13 @@ public class KafkaMessage {
     private String status;
     private String updateReason;
     private String closureComments;
+    private String resolution;
+    private String impactDetails;
+    private String sla;
+    private String level;
+    private String item;
+    private Boolean isFcr;
+    private String statusChangeComments;
     private Map<String, Object> customFields;
     private Instant timestamp;
 }

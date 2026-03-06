@@ -34,6 +34,21 @@ public class SdpUpdateRequestPayload {
     private Map<String, Object> udf_fields;
     private String update_reason;
     private String status_change_comments;
+    private SdpResolution resolution;
+    private String impact_details;
+    private SdpNamedEntity sla;
+    private SdpNamedEntity level;
+    private SdpNamedEntity item;
+    private Boolean is_fcr;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class SdpResolution {
+        private String content;
+    }
 
     @Data
     @Builder

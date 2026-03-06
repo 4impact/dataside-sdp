@@ -33,6 +33,22 @@ public class SdpCreateRequestPayload {
     private SdpRequester requester;
     private List<String> email_ids_to_notify;
     private Map<String, Object> udf_fields;
+    private SdpResolution resolution;
+    private String impact_details;
+    private SdpNamedEntity sla;
+    private SdpNamedEntity level;
+    private SdpNamedEntity item;
+    private Boolean is_fcr;
+    private String status_change_comments;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class SdpResolution {
+        private String content;
+    }
 
     @Data
     @Builder
