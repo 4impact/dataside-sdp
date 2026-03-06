@@ -13,16 +13,9 @@ import lombok.NoArgsConstructor;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SdpAddNotePayload {
 
-    private NoteContent note;
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class NoteContent {
-        private String content_type;
-        private String content;
-        private Boolean show_to_requester;
-    }
+    private String description;
+    private Boolean show_to_requester;
+    private Boolean mark_first_response;
+    private Boolean add_to_linked_requests;
+    private Boolean notify_technician;
 }

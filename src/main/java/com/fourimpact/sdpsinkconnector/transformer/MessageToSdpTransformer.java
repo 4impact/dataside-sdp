@@ -81,11 +81,8 @@ public class MessageToSdpTransformer {
         }
 
         return SdpAddNotePayload.builder()
-                .note(SdpAddNotePayload.NoteContent.builder()
-                        .content_type("plaintext")
-                        .content(message.getNote())
-                        .show_to_requester(true)
-                        .build())
+                .description(message.getNote())
+                .show_to_requester(true)
                 .build();
     }
 

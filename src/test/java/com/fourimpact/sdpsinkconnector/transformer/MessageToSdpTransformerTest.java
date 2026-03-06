@@ -119,8 +119,8 @@ class MessageToSdpTransformerTest {
 
         SdpAddNotePayload payload = transformer.toAddNotePayload(msg);
 
-        assertThat(payload.getNote().getContent()).isEqualTo("This is a note");
-        assertThat(payload.getNote().getShow_to_requester()).isTrue();
+        assertThat(payload.getDescription()).isEqualTo("This is a note");
+        assertThat(payload.getShow_to_requester()).isTrue();
     }
 
     @Test

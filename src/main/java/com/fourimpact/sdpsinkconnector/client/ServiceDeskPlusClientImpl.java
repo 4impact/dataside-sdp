@@ -151,7 +151,7 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
         String url = buildUrl("/requests/" + requestId + "/notes");
         log.debug("POST {} - add note", url);
         try {
-            String requestBody = buildInputData(payload);
+            String requestBody = buildInputData("request_note", payload);
             restClient.post()
                     .uri(url)
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -250,8 +250,12 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
     }
 
     private String buildInputData(Object payload) {
+        return buildInputData("request", payload);
+    }
+
+    private String buildInputData(String wrapperKey, Object payload) {
         try {
-            String json = objectMapper.writeValueAsString(Map.of("request", payload));
+            String json = objectMapper.writeValueAsString(Map.of(wrapperKey, payload));
             return java.net.URLEncoder.encode(json, java.nio.charset.StandardCharsets.UTF_8);
         } catch (Exception e) {
             throw new PermanentSdpException("Failed to serialize SDP payload", e);

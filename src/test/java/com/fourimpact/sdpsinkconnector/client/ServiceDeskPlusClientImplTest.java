@@ -181,11 +181,8 @@ class ServiceDeskPlusClientImplTest {
                 .willReturn(aResponse().withStatus(201).withBody("{}")));
 
         SdpAddNotePayload payload = SdpAddNotePayload.builder()
-                .note(SdpAddNotePayload.NoteContent.builder()
-                        .content("Test note")
-                        .content_type("plaintext")
-                        .show_to_requester(true)
-                        .build())
+                .description("Test note")
+                .show_to_requester(true)
                 .build();
 
         client.addNote("REQ-100", payload);
