@@ -15,32 +15,13 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SdpCreateRequestPayload {
 
-    private SdpSubject subject;
-    private SdpDescription description;
+    private String subject;
+    private String description;
     private SdpNamedEntity priority;
     private SdpNamedEntity category;
     private SdpNamedEntity subcategory;
     private SdpRequester requester;
     private Map<String, Object> udf_fields;
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class SdpSubject {
-        private String subject;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class SdpDescription {
-        private String content_type;
-        private String content;
-    }
 
     @Data
     @Builder

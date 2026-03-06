@@ -40,9 +40,8 @@ class MessageToSdpTransformerTest {
 
         SdpCreateRequestPayload payload = transformer.toCreatePayload(msg);
 
-        assertThat(payload.getSubject().getSubject()).isEqualTo("VPN broken");
-        assertThat(payload.getDescription().getContent()).isEqualTo("Cannot connect");
-        assertThat(payload.getDescription().getContent_type()).isEqualTo("plaintext");
+        assertThat(payload.getSubject()).isEqualTo("VPN broken");
+        assertThat(payload.getDescription()).isEqualTo("Cannot connect");
         assertThat(payload.getPriority().getName()).isEqualTo("High");
         assertThat(payload.getCategory().getName()).isEqualTo("Network");
         assertThat(payload.getSubcategory().getName()).isEqualTo("VPN");
@@ -91,7 +90,7 @@ class MessageToSdpTransformerTest {
         SdpUpdateRequestPayload payload = transformer.toUpdatePayload(msg);
 
         assertThat(payload.getSubject()).isEqualTo("Updated subject");
-        assertThat(payload.getDescription().getContent()).isEqualTo("Updated description");
+        assertThat(payload.getDescription()).isEqualTo("Updated description");
         assertThat(payload.getPriority().getName()).isEqualTo("Low");
     }
 

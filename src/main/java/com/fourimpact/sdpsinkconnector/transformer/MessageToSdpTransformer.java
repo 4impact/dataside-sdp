@@ -24,23 +24,13 @@ public class MessageToSdpTransformer {
                     .build();
         }
 
-        SdpCreateRequestPayload.SdpDescription description = null;
-        if (message.getDescription() != null) {
-            description = SdpCreateRequestPayload.SdpDescription.builder()
-                    .content_type("plaintext")
-                    .content(message.getDescription())
-                    .build();
-        }
-
         SdpCreateRequestPayload.SdpNamedEntity priority = namedEntity(message.getPriority());
         SdpCreateRequestPayload.SdpNamedEntity category = namedEntity(message.getCategory());
         SdpCreateRequestPayload.SdpNamedEntity subcategory = namedEntity(message.getSubCategory());
 
         return SdpCreateRequestPayload.builder()
-                .subject(SdpCreateRequestPayload.SdpSubject.builder()
-                        .subject(message.getSubject())
-                        .build())
-                .description(description)
+                .subject(message.getSubject())
+                .description(message.getDescription())
                 .priority(priority)
                 .category(category)
                 .subcategory(subcategory)
@@ -52,21 +42,13 @@ public class MessageToSdpTransformer {
     public SdpUpdateRequestPayload toUpdatePayload(KafkaMessage message) {
         validateRequestId(message, "UPDATE");
 
-        SdpUpdateRequestPayload.SdpDescription description = null;
-        if (message.getDescription() != null) {
-            description = SdpUpdateRequestPayload.SdpDescription.builder()
-                    .content_type("plaintext")
-                    .content(message.getDescription())
-                    .build();
-        }
-
         SdpUpdateRequestPayload.SdpNamedEntity priority = updateNamedEntity(message.getPriority());
         SdpUpdateRequestPayload.SdpNamedEntity category = updateNamedEntity(message.getCategory());
         SdpUpdateRequestPayload.SdpNamedEntity subcategory = updateNamedEntity(message.getSubCategory());
 
         return SdpUpdateRequestPayload.builder()
                 .subject(message.getSubject())
-                .description(description)
+                .description(message.getDescription())
                 .priority(priority)
                 .category(category)
                 .subcategory(subcategory)

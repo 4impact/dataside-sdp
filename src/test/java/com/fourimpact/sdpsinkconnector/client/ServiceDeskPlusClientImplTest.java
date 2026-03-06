@@ -56,7 +56,7 @@ class ServiceDeskPlusClientImplTest {
                         .withBody("{\"request\":{\"id\":\"REQ-999\"}}")));
 
         SdpCreateRequestPayload payload = SdpCreateRequestPayload.builder()
-                .subject(SdpCreateRequestPayload.SdpSubject.builder().subject("Test").build())
+                .subject("Test")
                 .build();
 
         String requestId = client.createRequest(payload);
@@ -70,7 +70,7 @@ class ServiceDeskPlusClientImplTest {
                 .willReturn(aResponse().withStatus(503)));
 
         SdpCreateRequestPayload payload = SdpCreateRequestPayload.builder()
-                .subject(SdpCreateRequestPayload.SdpSubject.builder().subject("Test").build())
+                .subject("Test")
                 .build();
 
         assertThatThrownBy(() -> client.createRequest(payload))
@@ -83,7 +83,7 @@ class ServiceDeskPlusClientImplTest {
                 .willReturn(aResponse().withStatus(400).withBody("{\"error\":\"bad request\"}")));
 
         SdpCreateRequestPayload payload = SdpCreateRequestPayload.builder()
-                .subject(SdpCreateRequestPayload.SdpSubject.builder().subject("Test").build())
+                .subject("Test")
                 .build();
 
         assertThatThrownBy(() -> client.createRequest(payload))
@@ -96,7 +96,7 @@ class ServiceDeskPlusClientImplTest {
                 .willReturn(aResponse().withStatus(404)));
 
         SdpCreateRequestPayload payload = SdpCreateRequestPayload.builder()
-                .subject(SdpCreateRequestPayload.SdpSubject.builder().subject("Test").build())
+                .subject("Test")
                 .build();
 
         assertThatThrownBy(() -> client.createRequest(payload))
@@ -109,7 +109,7 @@ class ServiceDeskPlusClientImplTest {
                 .willReturn(aResponse().withStatus(429)));
 
         SdpCreateRequestPayload payload = SdpCreateRequestPayload.builder()
-                .subject(SdpCreateRequestPayload.SdpSubject.builder().subject("Test").build())
+                .subject("Test")
                 .build();
 
         assertThatThrownBy(() -> client.createRequest(payload))
