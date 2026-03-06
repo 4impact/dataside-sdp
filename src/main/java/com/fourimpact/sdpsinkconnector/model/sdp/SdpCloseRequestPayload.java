@@ -15,7 +15,7 @@ public class SdpCloseRequestPayload {
 
     private SdpStatus status;
     private SdpCloseCode closure_code;
-    private String closure_comments;
+    private String status_change_comments;
 
     @Data
     @Builder

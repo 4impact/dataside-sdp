@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -22,11 +23,23 @@ public class KafkaMessage {
     private String subject;
     private String description;
     private String priority;
+    private String urgency;
+    private String impact;
     private String category;
     private String subCategory;
+    private String group;
+    private String technician;
+    private String mode;
+    private String requestType;
+    private String site;
+    private String customer;
+    private String template;
+    private List<String> emailIdsToNotify;
     private RequesterInfo requester;
     private String note;
     private String status;
+    private String updateReason;
+    private String closureComments;
     private Map<String, Object> customFields;
     private Instant timestamp;
 }

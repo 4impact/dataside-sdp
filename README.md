@@ -25,25 +25,47 @@ A Spring Boot 3.5 application that consumes JSON messages from a Kafka topic and
   "subject": "VPN access not working",
   "description": "User cannot connect to corporate VPN since this morning.",
   "priority": "High",
+  "urgency": "Urgent",
+  "impact": "Affects Business",
   "category": "Network",
   "subCategory": "VPN",
+  "group": "Network Team",
+  "technician": "john.smith@example.com",
+  "mode": "E-Mail",
+  "requestType": "Incident",
+  "site": "Head Office",
+  "customer": "123456789",
+  "template": "Default Template",
+  "emailIdsToNotify": ["manager@example.com"],
   "requester": {
     "name": "Jane Doe",
     "email": "jane.doe@example.com"
   },
   "note": null,
   "status": null,
+  "updateReason": null,
+  "closureComments": null,
   "customFields": {},
   "timestamp": "2026-03-04T10:15:30Z"
 }
 ```
 
-| Field | Required for |
-|-------|-------------|
-| `operation` | All |
-| `subject` | `CREATE` |
-| `sdpRequestId` | `UPDATE`, `ADD_NOTE`, `CLOSE` |
-| `note` | `ADD_NOTE` |
+| Field | Required for | Notes |
+|-------|-------------|-------|
+| `operation` | All | `CREATE`, `UPDATE`, `ADD_NOTE`, `CLOSE` |
+| `subject` | `CREATE` | |
+| `sdpRequestId` | `UPDATE`, `ADD_NOTE`, `CLOSE` | |
+| `note` | `ADD_NOTE` | |
+| `status` | `CLOSE` | Used as closure code name (e.g. `"Resolved"`) |
+| `priority`, `urgency`, `impact` | `CREATE`, `UPDATE` | Named by value (e.g. `"High"`) |
+| `category`, `subCategory` | `CREATE`, `UPDATE` | Named by value |
+| `group`, `mode`, `requestType`, `site`, `template` | `CREATE`, `UPDATE` | Named by value |
+| `technician` | `CREATE`, `UPDATE` | Email address |
+| `customer` | `CREATE`, `UPDATE` | SDP customer ID |
+| `emailIdsToNotify` | `CREATE`, `UPDATE` | Array of email addresses |
+| `updateReason` | `UPDATE` | Audit trail reason for the change |
+| `closureComments` | `CLOSE` | Comment recorded when closing |
+| `customFields` | `CREATE`, `UPDATE` | Map of UDF field keys to values |
 
 ---
 

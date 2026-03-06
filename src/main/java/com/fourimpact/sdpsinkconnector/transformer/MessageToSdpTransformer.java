@@ -24,17 +24,23 @@ public class MessageToSdpTransformer {
                     .build();
         }
 
-        SdpCreateRequestPayload.SdpNamedEntity priority = namedEntity(message.getPriority());
-        SdpCreateRequestPayload.SdpNamedEntity category = namedEntity(message.getCategory());
-        SdpCreateRequestPayload.SdpNamedEntity subcategory = namedEntity(message.getSubCategory());
-
         return SdpCreateRequestPayload.builder()
                 .subject(message.getSubject())
                 .description(message.getDescription())
-                .priority(priority)
-                .category(category)
-                .subcategory(subcategory)
+                .priority(namedEntity(message.getPriority()))
+                .urgency(namedEntity(message.getUrgency()))
+                .impact(namedEntity(message.getImpact()))
+                .category(namedEntity(message.getCategory()))
+                .subcategory(namedEntity(message.getSubCategory()))
+                .group(namedEntity(message.getGroup()))
+                .technician(emailEntity(message.getTechnician()))
+                .mode(namedEntity(message.getMode()))
+                .request_type(namedEntity(message.getRequestType()))
+                .site(namedEntity(message.getSite()))
+                .template(namedEntity(message.getTemplate()))
+                .customer(customerEntity(message.getCustomer()))
                 .requester(requester)
+                .email_ids_to_notify(message.getEmailIdsToNotify())
                 .udf_fields(message.getCustomFields())
                 .build();
     }
@@ -42,17 +48,24 @@ public class MessageToSdpTransformer {
     public SdpUpdateRequestPayload toUpdatePayload(KafkaMessage message) {
         validateRequestId(message, "UPDATE");
 
-        SdpUpdateRequestPayload.SdpNamedEntity priority = updateNamedEntity(message.getPriority());
-        SdpUpdateRequestPayload.SdpNamedEntity category = updateNamedEntity(message.getCategory());
-        SdpUpdateRequestPayload.SdpNamedEntity subcategory = updateNamedEntity(message.getSubCategory());
-
         return SdpUpdateRequestPayload.builder()
                 .subject(message.getSubject())
                 .description(message.getDescription())
-                .priority(priority)
-                .category(category)
-                .subcategory(subcategory)
+                .priority(updateNamedEntity(message.getPriority()))
+                .urgency(updateNamedEntity(message.getUrgency()))
+                .impact(updateNamedEntity(message.getImpact()))
+                .category(updateNamedEntity(message.getCategory()))
+                .subcategory(updateNamedEntity(message.getSubCategory()))
+                .group(updateNamedEntity(message.getGroup()))
+                .technician(updateEmailEntity(message.getTechnician()))
+                .mode(updateNamedEntity(message.getMode()))
+                .request_type(updateNamedEntity(message.getRequestType()))
+                .site(updateNamedEntity(message.getSite()))
+                .template(updateNamedEntity(message.getTemplate()))
+                .customer(updateCustomerEntity(message.getCustomer()))
+                .email_ids_to_notify(message.getEmailIdsToNotify())
                 .udf_fields(message.getCustomFields())
+                .update_reason(message.getUpdateReason())
                 .build();
     }
 
@@ -76,6 +89,7 @@ public class MessageToSdpTransformer {
                 .closure_code(SdpCloseRequestPayload.SdpCloseCode.builder()
                         .name(message.getStatus() != null ? message.getStatus() : "Resolved")
                         .build())
+                .status_change_comments(message.getClosureComments())
                 .build();
     }
 
@@ -91,8 +105,28 @@ public class MessageToSdpTransformer {
         return SdpCreateRequestPayload.SdpNamedEntity.builder().name(name).build();
     }
 
+    private SdpCreateRequestPayload.SdpTechnician emailEntity(String email) {
+        if (email == null || email.isBlank()) return null;
+        return SdpCreateRequestPayload.SdpTechnician.builder().email_id(email).build();
+    }
+
+    private SdpCreateRequestPayload.SdpCustomer customerEntity(String id) {
+        if (id == null || id.isBlank()) return null;
+        return SdpCreateRequestPayload.SdpCustomer.builder().id(id).build();
+    }
+
     private SdpUpdateRequestPayload.SdpNamedEntity updateNamedEntity(String name) {
         if (name == null || name.isBlank()) return null;
         return SdpUpdateRequestPayload.SdpNamedEntity.builder().name(name).build();
+    }
+
+    private SdpUpdateRequestPayload.SdpTechnician updateEmailEntity(String email) {
+        if (email == null || email.isBlank()) return null;
+        return SdpUpdateRequestPayload.SdpTechnician.builder().email_id(email).build();
+    }
+
+    private SdpUpdateRequestPayload.SdpCustomer updateCustomerEntity(String id) {
+        if (id == null || id.isBlank()) return null;
+        return SdpUpdateRequestPayload.SdpCustomer.builder().id(id).build();
     }
 }
