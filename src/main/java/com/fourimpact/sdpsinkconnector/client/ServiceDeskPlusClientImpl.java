@@ -8,6 +8,7 @@ import com.fourimpact.sdpsinkconnector.exception.TransientSdpException;
 import com.fourimpact.sdpsinkconnector.model.sdp.SdpAddNotePayload;
 import com.fourimpact.sdpsinkconnector.model.sdp.SdpCloseRequestPayload;
 import com.fourimpact.sdpsinkconnector.model.sdp.SdpCreateRequestPayload;
+import com.fourimpact.sdpsinkconnector.model.sdp.SdpRequestTemplate;
 import com.fourimpact.sdpsinkconnector.model.sdp.SdpUpdateRequestPayload;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -222,6 +223,112 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
             throw new TransientSdpException("Connection error calling SDP closeRequest", e);
         } catch (Exception e) {
             throw new PermanentSdpException("Unexpected error in closeRequest: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Fetches a single SDP request template by ID.
+     *
+     * <h3>Prerequisites</h3>
+     * <ol>
+     *   <li><b>OAuth scope</b> — the Zoho OAuth token must be issued with at least
+     *       {@code SDPOnDemand.setup.READ}. The {@code SDPOnDemand.requests.ALL} scope
+     *       that covers request CRUD is <em>not</em> sufficient for this endpoint;
+     *       SDP returns HTTP 401 if only that scope is present.</li>
+     *   <li><b>How to include the scope</b> — add it to the {@code scope} parameter
+     *       when generating the authorisation code:
+     *       <pre>
+     *         scope=SDPOnDemand.requests.ALL,SDPOnDemand.setup.READ
+     *       </pre>
+     *       then exchange the code for a token via:
+     *       <pre>
+     *         POST https://accounts.zoho.com.au/oauth/v2/token
+     *           code=&lt;auth_code&gt;
+     *           grant_type=authorization_code
+     *           client_id=&lt;client_id&gt;
+     *           client_secret=&lt;client_secret&gt;
+     *           redirect_uri=&lt;redirect_uri&gt;
+     *       </pre>
+     *   </li>
+     *   <li><b>URL format</b>
+     *       <pre>GET {base-url}/app/{portal}/api/v3/request_templates/{templateId}</pre>
+     *       Example:
+     *       <pre>GET https://servicedeskplus.net.au/app/itdesk/api/v3/request_templates/7564000000278687</pre>
+     *   </li>
+     *   <li><b>Auth header</b>
+     *       <pre>Authorization: Zoho-oauthtoken &lt;access_token&gt;</pre>
+     *   </li>
+     *   <li><b>Template ID</b> — use the {@code id} value from the
+     *       {@code GET /requests} list response (e.g. {@code "7564000000278687"}).
+     *       Do <em>not</em> prefix the ID with a colon ({@code :}) as shown in
+     *       some API documentation examples — that is a placeholder convention,
+     *       not part of the actual URL.</li>
+     * </ol>
+     *
+     * <h3>Equivalent curl</h3>
+     * <pre>
+     * curl --location \
+     *   'https://servicedeskplus.net.au/app/itdesk/api/v3/request_templates/7564000000278687' \
+     *   --header 'Authorization: Zoho-oauthtoken &lt;access_token&gt;' \
+     *   --header 'Accept: application/vnd.manageengine.sdp.v3+json' \
+     *   --header 'Content-Type: application/x-www-form-urlencoded'
+     * </pre>
+     *
+     * @param templateId the SDP internal template ID (e.g. {@code "7564000000278687"})
+     * @return the parsed {@link SdpRequestTemplate}, or {@code null} if the response
+     *         body cannot be parsed
+     * @throws TransientSdpException on 5xx / connection errors (eligible for retry)
+     * @throws PermanentSdpException on 4xx errors, including 401 when the OAuth
+     *         token is missing the {@code SDPOnDemand.setup.READ} scope
+     */
+    @Override
+    @Retryable(
+            retryFor = TransientSdpException.class,
+            maxAttemptsExpression = "${sdp.retry.max-attempts:3}",
+            backoff = @Backoff(
+                    delayExpression = "${sdp.retry.initial-interval-ms:1000}",
+                    multiplierExpression = "${sdp.retry.multiplier:2.0}",
+                    maxDelayExpression = "${sdp.retry.max-interval-ms:15000}"
+            )
+    )
+    public SdpRequestTemplate getRequestTemplate(String templateId) {
+        String url = buildUrl("/request_templates/" + templateId);
+        log.debug("GET {} - get request template", url);
+        try {
+            String responseBody = restClient.get()
+                    .uri(url)
+                    .headers(authStrategy::apply)
+                    .retrieve()
+                    .onStatus(this::isTransient, (req, res) -> {
+                        throw new TransientSdpException("Transient HTTP " + res.getStatusCode());
+                    })
+                    .onStatus(this::isPermanent, (req, res) -> {
+                        throw new PermanentSdpException("Permanent HTTP " + res.getStatusCode());
+                    })
+                    .body(String.class);
+
+            return extractTemplate(responseBody);
+        } catch (TransientSdpException | PermanentSdpException e) {
+            throw e;
+        } catch (RestClientException e) {
+            throw new TransientSdpException("Connection error calling SDP getRequestTemplate", e);
+        } catch (Exception e) {
+            throw new PermanentSdpException("Unexpected error in getRequestTemplate: " + e.getMessage(), e);
+        }
+    }
+
+    private SdpRequestTemplate extractTemplate(String responseBody) {
+        try {
+            JsonNode root = objectMapper.readTree(responseBody);
+            JsonNode templateNode = root.path("request_template");
+            if (templateNode.isMissingNode()) {
+                log.warn("No 'request_template' field in SDP response: {}", responseBody);
+                return null;
+            }
+            return objectMapper.treeToValue(templateNode, SdpRequestTemplate.class);
+        } catch (Exception e) {
+            log.warn("Failed to parse SDP request template response: {}", e.getMessage());
+            return null;
         }
     }
 
