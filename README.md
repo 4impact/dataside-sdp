@@ -179,6 +179,149 @@ On failure:
 
 ---
 
+## SDP API — curl Reference
+
+All commands below target the **Zoho SDP MSP Cloud (AU region)**.
+Replace `<access_token>`, `<client_id>`, `<client_secret>`, `<auth_code>`, and `<portal>` with your actual values.
+
+---
+
+### 1. Obtain an OAuth Token
+
+#### Step 1 — Generate an authorisation code
+
+Open this URL in a browser. After granting consent, Zoho redirects to
+`http://localhost?code=<auth_code>` — copy the `code` value.
+
+**For request operations only (`CREATE`, `UPDATE`, `ADD_NOTE`, `CLOSE`):**
+```
+https://accounts.zoho.com.au/oauth/v2/auth
+  ?scope=SDPOnDemand.requests.ALL
+  &client_id=<client_id>
+  &response_type=code
+  &redirect_uri=http://localhost
+  &access_type=offline
+```
+
+**For request operations + reading templates (`getRequestTemplate`):**
+```
+https://accounts.zoho.com.au/oauth/v2/auth
+  ?scope=SDPOnDemand.requests.ALL,SDPOnDemand.setup.READ
+  &client_id=<client_id>
+  &response_type=code
+  &redirect_uri=http://localhost
+  &access_type=offline
+```
+
+> `SDPOnDemand.setup.READ` is required for the `request_templates` endpoint.
+> Using only `SDPOnDemand.requests.ALL` returns HTTP 401 on that endpoint.
+
+#### Step 2 — Exchange the code for a token
+
+```bash
+curl -X POST "https://accounts.zoho.com.au/oauth/v2/token" \
+  -d "code=<auth_code>" \
+  -d "grant_type=authorization_code" \
+  -d "client_id=<client_id>" \
+  -d "client_secret=<client_secret>" \
+  -d "redirect_uri=http://localhost"
+```
+
+**Successful response:**
+```json
+{
+  "access_token": "1000.xxxx...xxxx",
+  "refresh_token": "1000.xxxx...xxxx",
+  "scope": "SDPOnDemand.requests.ALL SDPOnDemand.setup.READ",
+  "api_domain": "https://www.zohoapis.com.au",
+  "token_type": "Bearer",
+  "expires_in": 3600
+}
+```
+
+> The `access_token` expires in 1 hour. Store the `refresh_token` to obtain new tokens without re-authorising.
+
+---
+
+### 2. List Requests
+
+```bash
+curl --location \
+  'https://servicedeskplus.net.au/app/<portal>/api/v3/requests' \
+  --header 'Authorization: Zoho-oauthtoken <access_token>' \
+  --header 'Accept: application/vnd.manageengine.sdp.v3+json' \
+  --header 'Content-Type: application/x-www-form-urlencoded'
+```
+
+**Successful response (truncated):**
+```json
+{
+  "response_status": [{"status_code": 2000, "status": "success"}],
+  "list_info": {"has_more_rows": true, "row_count": 10},
+  "requests": [
+    {
+      "id": "7564000000307383",
+      "display_id": "1",
+      "subject": "URGENT - VPN Connection Issue",
+      "status": {"name": "Closed"},
+      "requester": {"name": "Bruce Williams"},
+      "technician": {"name": "Heather Graham"},
+      "template": {"id": "7564000000278687", "name": "Default Request"}
+    }
+  ]
+}
+```
+
+> **Common mistake:** The endpoint is `/requests` (plural). Using `/request` (singular) returns
+> `status_code: 4007 — Invalid URL`.
+
+---
+
+### 3. Get a Request Template
+
+```bash
+curl --location \
+  'https://servicedeskplus.net.au/app/<portal>/api/v3/request_templates/<templateId>' \
+  --header 'Authorization: Zoho-oauthtoken <access_token>' \
+  --header 'Accept: application/vnd.manageengine.sdp.v3+json' \
+  --header 'Content-Type: application/x-www-form-urlencoded'
+```
+
+**Successful response (truncated):**
+```json
+{
+  "response_status": {"status_code": 2000, "status": "success"},
+  "request_template": {
+    "id": "7564000000278687",
+    "name": "Default Request",
+    "is_default": true,
+    "is_service_template": false,
+    "inactive": false,
+    "comments": "Default template used for new request creation.",
+    "request": {
+      "status": {"name": "Open"}
+    }
+  }
+}
+```
+
+> **Common mistakes:**
+> - Missing portal segment: `/api/v3/request_templates/...` → `4007 Invalid URL`. Must be `/app/<portal>/api/v3/request_templates/...`
+> - Colon prefix on ID: `:7564000000278687` is API doc placeholder notation — use `7564000000278687` directly.
+> - Wrong scope: token must include `SDPOnDemand.setup.READ`; `SDPOnDemand.requests.ALL` alone returns HTTP 401.
+
+---
+
+### Common Errors
+
+| HTTP | SDP `status_code` | Cause | Fix |
+|---|---|---|---|
+| 404 | 4007 | Invalid URL (wrong path, missing portal, or stray `:` on ID) | Check URL matches `/app/<portal>/api/v3/<resource>` |
+| 401 | — | OAuth token missing required scope | Re-authorise with the correct scope (see above) |
+| 400 | 4015 | SDP rate limit hit | Handled automatically via `TransientSdpException` retry |
+
+---
+
 ## Project Structure
 
 ```
