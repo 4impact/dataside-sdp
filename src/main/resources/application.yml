@@ -23,10 +23,15 @@ sdp:
     type: ${SDP_AUTH_TYPE:API_KEY}   # API_KEY | OAUTH2
     api-key: ${SDP_API_KEY:}
     oauth2:
-      token-url: ${SDP_OAUTH_TOKEN_URL:}
-      client-id: ${SDP_OAUTH_CLIENT_ID:}
-      client-secret: ${SDP_OAUTH_CLIENT_SECRET:}
-      scope: SDPOnDemand.requests.ALL
+      token-url: https://accounts.zoho.com/oauth/v2/token
+      revoke-url: https://accounts.zoho.com/oauth/v2/token/revoke
+      client-id: 1000.UA8NGDYKPCX3C8RK6ZDL1VL4H4HBRE
+      client-secret: 4a6994ef0bed1c71eb54b553d9aadc07b2f9587a2e
+      grant-type: ${SDP_OAUTH_GRANT_TYPE:client_credentials}   # client_credentials | authorization_code | refresh_token
+      scope: SDPOnDemand.requests.ALL,SDPOnDemand.setup.READ
+      authorization-code: ${SDP_OAUTH_AUTH_CODE:}              # required for grant-type=authorization_code (one-time)
+      redirect-uri: ${SDP_OAUTH_REDIRECT_URI:}                 # required for grant-type=authorization_code
+      refresh-token: ${SDP_OAUTH_REFRESH_TOKEN:}               # required for grant-type=refresh_token
 
   topics:
     input: ${KAFKA_INPUT_TOPIC:sdp-requests}
