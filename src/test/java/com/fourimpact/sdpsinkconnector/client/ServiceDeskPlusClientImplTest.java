@@ -50,7 +50,7 @@ class ServiceDeskPlusClientImplTest {
 
     @Test
     void createRequest_success_returnsRequestId() {
-        wireMock.stubFor(post(urlPathEqualTo("/app/test-portal/api/v3/requests"))
+        wireMock.stubFor(post(urlPathEqualTo("/app/test-portal/api/v3/request"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
@@ -67,7 +67,7 @@ class ServiceDeskPlusClientImplTest {
 
     @Test
     void createRequest_503_throwsTransientException() {
-        wireMock.stubFor(post(urlPathEqualTo("/app/test-portal/api/v3/requests"))
+        wireMock.stubFor(post(urlPathEqualTo("/app/test-portal/api/v3/request"))
                 .willReturn(aResponse().withStatus(503)));
 
         SdpCreateRequestPayload payload = SdpCreateRequestPayload.builder()
@@ -80,7 +80,7 @@ class ServiceDeskPlusClientImplTest {
 
     @Test
     void createRequest_400_throwsPermanentException() {
-        wireMock.stubFor(post(urlPathEqualTo("/app/test-portal/api/v3/requests"))
+        wireMock.stubFor(post(urlPathEqualTo("/app/test-portal/api/v3/request"))
                 .willReturn(aResponse().withStatus(400).withBody("{\"error\":\"bad request\"}")));
 
         SdpCreateRequestPayload payload = SdpCreateRequestPayload.builder()
@@ -93,7 +93,7 @@ class ServiceDeskPlusClientImplTest {
 
     @Test
     void createRequest_404_throwsPermanentException() {
-        wireMock.stubFor(post(urlPathEqualTo("/app/test-portal/api/v3/requests"))
+        wireMock.stubFor(post(urlPathEqualTo("/app/test-portal/api/v3/request"))
                 .willReturn(aResponse().withStatus(404)));
 
         SdpCreateRequestPayload payload = SdpCreateRequestPayload.builder()
@@ -106,7 +106,7 @@ class ServiceDeskPlusClientImplTest {
 
     @Test
     void createRequest_429_throwsTransientException() {
-        wireMock.stubFor(post(urlPathEqualTo("/app/test-portal/api/v3/requests"))
+        wireMock.stubFor(post(urlPathEqualTo("/app/test-portal/api/v3/request"))
                 .willReturn(aResponse().withStatus(429)));
 
         SdpCreateRequestPayload payload = SdpCreateRequestPayload.builder()
@@ -121,7 +121,7 @@ class ServiceDeskPlusClientImplTest {
 
     @Test
     void updateRequest_success() {
-        wireMock.stubFor(put(urlPathEqualTo("/app/test-portal/api/v3/requests/REQ-100"))
+        wireMock.stubFor(put(urlPathEqualTo("/app/test-portal/api/v3/request/REQ-100"))
                 .willReturn(aResponse().withStatus(200).withBody("{}")));
 
         SdpUpdateRequestPayload payload = SdpUpdateRequestPayload.builder()
@@ -131,12 +131,12 @@ class ServiceDeskPlusClientImplTest {
         // Should not throw
         client.updateRequest("REQ-100", payload);
 
-        wireMock.verify(putRequestedFor(urlPathEqualTo("/app/test-portal/api/v3/requests/REQ-100")));
+        wireMock.verify(putRequestedFor(urlPathEqualTo("/app/test-portal/api/v3/request/REQ-100")));
     }
 
     @Test
     void updateRequest_401_throwsPermanentException() {
-        wireMock.stubFor(put(urlPathEqualTo("/app/test-portal/api/v3/requests/REQ-100"))
+        wireMock.stubFor(put(urlPathEqualTo("/app/test-portal/api/v3/request/REQ-100"))
                 .willReturn(aResponse().withStatus(401)));
 
         SdpUpdateRequestPayload payload = SdpUpdateRequestPayload.builder().build();
@@ -147,7 +147,7 @@ class ServiceDeskPlusClientImplTest {
 
     @Test
     void updateRequest_400_sdp4015_throwsTransientException() {
-        wireMock.stubFor(put(urlPathEqualTo("/app/test-portal/api/v3/requests/123"))
+        wireMock.stubFor(put(urlPathEqualTo("/app/test-portal/api/v3/request/123"))
                 .willReturn(aResponse()
                         .withStatus(400)
                         .withHeader("Content-Type", "application/json")
@@ -162,7 +162,7 @@ class ServiceDeskPlusClientImplTest {
 
     @Test
     void updateRequest_400_nonRateLimit_throwsPermanentException() {
-        wireMock.stubFor(put(urlPathEqualTo("/app/test-portal/api/v3/requests/123"))
+        wireMock.stubFor(put(urlPathEqualTo("/app/test-portal/api/v3/request/123"))
                 .willReturn(aResponse()
                         .withStatus(400)
                         .withHeader("Content-Type", "application/json")
@@ -178,7 +178,7 @@ class ServiceDeskPlusClientImplTest {
 
     @Test
     void addNote_success() {
-        wireMock.stubFor(post(urlPathEqualTo("/app/test-portal/api/v3/requests/REQ-100/notes"))
+        wireMock.stubFor(post(urlPathEqualTo("/app/test-portal/api/v3/request/REQ-100/notes"))
                 .willReturn(aResponse().withStatus(201).withBody("{}")));
 
         SdpAddNotePayload payload = SdpAddNotePayload.builder()
@@ -188,14 +188,14 @@ class ServiceDeskPlusClientImplTest {
 
         client.addNote("REQ-100", payload);
 
-        wireMock.verify(postRequestedFor(urlPathEqualTo("/app/test-portal/api/v3/requests/REQ-100/notes")));
+        wireMock.verify(postRequestedFor(urlPathEqualTo("/app/test-portal/api/v3/request/REQ-100/notes")));
     }
 
     // ---- closeRequest ----
 
     @Test
     void closeRequest_success() {
-        wireMock.stubFor(put(urlPathEqualTo("/app/test-portal/api/v3/requests/REQ-100"))
+        wireMock.stubFor(put(urlPathEqualTo("/app/test-portal/api/v3/request/REQ-100"))
                 .willReturn(aResponse().withStatus(200).withBody("{}")));
 
         SdpCloseRequestPayload payload = SdpCloseRequestPayload.builder()
@@ -204,12 +204,12 @@ class ServiceDeskPlusClientImplTest {
 
         client.closeRequest("REQ-100", payload);
 
-        wireMock.verify(putRequestedFor(urlPathEqualTo("/app/test-portal/api/v3/requests/REQ-100")));
+        wireMock.verify(putRequestedFor(urlPathEqualTo("/app/test-portal/api/v3/request/REQ-100")));
     }
 
     @Test
     void closeRequest_504_throwsTransientException() {
-        wireMock.stubFor(put(urlPathEqualTo("/app/test-portal/api/v3/requests/REQ-100"))
+        wireMock.stubFor(put(urlPathEqualTo("/app/test-portal/api/v3/request/REQ-100"))
                 .willReturn(aResponse().withStatus(504)));
 
         SdpCloseRequestPayload payload = SdpCloseRequestPayload.builder().build();
