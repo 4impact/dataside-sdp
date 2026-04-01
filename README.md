@@ -7,7 +7,7 @@ A Spring Boot 3.5 application that consumes JSON messages from a Kafka topic and
 ## Features
 
 - **Four SDP operations**: `CREATE`, `UPDATE`, `ADD_NOTE`, `CLOSE`
-- **Configurable auth**: API Key or OAuth 2.0 client-credentials (auto-cached token)
+- **Configurable auth**: API Key or OAuth 2.0 (client-credentials, authorization code, or refresh token — auto-cached)
 - **Retry with backoff**: Transient failures (5xx, 429, timeout, and SDP rate-limiting error 4015) are retried up to N times with exponential backoff
 - **Dead Letter Queue**: Permanent failures (4xx, schema errors) and exhausted retries are published to a configurable DLQ topic
 - **Manual offset commit**: Messages are only acknowledged after successful processing or DLQ dispatch
@@ -93,13 +93,12 @@ All settings are driven by environment variables. See `src/main/resources/applic
 | `KAFKA_GROUP_ID` | `sdp-sink-connector` | Consumer group |
 | `KAFKA_INPUT_TOPIC` | `sdp-requests` | Input topic |
 | `KAFKA_DLQ_TOPIC` | `sdp-requests-dlq` | Dead Letter Queue topic |
-| `SDP_BASE_URL` | `https://helpdesk.example.com` | SDP instance base URL |
-| `SDP_PORTAL` | _(empty)_ | SDP portal name (appears in API URL path as `/app/{portal}/`) |
-| `SDP_AUTH_TYPE` | `API_KEY` | `API_KEY` or `OAUTH2` |
-| `SDP_API_KEY` | _(empty)_ | API Key value |
-| `SDP_OAUTH_TOKEN_URL` | _(empty)_ | OAuth2 token endpoint |
-| `SDP_OAUTH_CLIENT_ID` | _(empty)_ | OAuth2 client ID |
-| `SDP_OAUTH_CLIENT_SECRET` | _(empty)_ | OAuth2 client secret |
+| `SDP_BASE_URL` | `https://servicedeskplus.net.au` | SDP instance base URL |
+| `SDP_PORTAL` | `itdesk` | SDP portal name (appears in API URL path as `/app/{portal}/`) |
+| `SDP_AUTH_TYPE` | `OAUTH2` | `API_KEY` or `OAUTH2` |
+| `SDP_API_KEY` | _(empty)_ | API Key value (only used when `SDP_AUTH_TYPE=API_KEY`) |
+| `SDP_OAUTH_GRANT_TYPE` | `refresh_token` | `client_credentials`, `authorization_code`, or `refresh_token` |
+| `SDP_OAUTH_REFRESH_TOKEN` | _(empty)_ | Refresh token (required when `grant-type=refresh_token`) |
 | `SDP_RETRY_MAX_ATTEMPTS` | `3` | Max retry attempts |
 | `SDP_RETRY_INITIAL_MS` | `1000` | Initial backoff (ms) |
 | `SDP_RETRY_MULTIPLIER` | `2.0` | Backoff multiplier |
@@ -119,15 +118,40 @@ All settings are driven by environment variables. See `src/main/resources/applic
 
 ```bash
 # Start Kafka (requires Docker)
-docker run -d --name kafka -p 9092:9092 \
+docker run -d --name kafka \
+  -p 9092:9092 \
+  -e KAFKA_NODE_ID=1 \
+  -e KAFKA_PROCESS_ROLES=broker,controller \
+  -e KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093 \
+  -e KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093 \
   -e KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092 \
-  confluentinc/cp-kafka:7.5.0
+  -e KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT \
+  -e KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER \
+  -e KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1 \
+  apache/kafka:latest
 
-# Run application
-export SDP_BASE_URL=https://your-sdp-instance.com
-export SDP_PORTAL=your-portal-name
-export SDP_API_KEY=your-api-key
+# Create the input topic
+docker exec kafka /opt/kafka/bin/kafka-topics.sh \
+  --create --topic sdp-requests \
+  --bootstrap-server localhost:9092 \
+  --partitions 1 --replication-factor 1
+
+# Run application (OAuth2 refresh_token grant — update refresh token before running)
+export SDP_OAUTH_REFRESH_TOKEN=your-refresh-token
 mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+#### Sending a test message
+
+```bash
+docker exec -i kafka /opt/kafka/bin/kafka-console-producer.sh \
+  --bootstrap-server localhost:9092 --topic sdp-requests
+```
+
+Paste and press Enter:
+
+```json
+{"messageId":"test-001","operation":"CREATE","subject":"Test ticket","description":"Mock message","priority":"High","requester":{"name":"John Doe","email":"john@example.com"}}
 ```
 
 ### Running tests
@@ -272,8 +296,7 @@ curl --location \
 }
 ```
 
-> **Common mistake:** The endpoint is `/requests` (plural). Using `/request` (singular) returns
-> `status_code: 4007 — Invalid URL`.
+> **Note:** The List endpoint uses `/requests` (plural). Write operations (`CREATE`, `UPDATE`, `ADD_NOTE`, `CLOSE`) use `/request` (singular) — this is an SDP API inconsistency.
 
 ---
 

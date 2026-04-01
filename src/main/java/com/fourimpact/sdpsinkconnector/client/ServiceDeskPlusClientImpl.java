@@ -59,13 +59,14 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
             )
     )
     public String createRequest(SdpCreateRequestPayload payload) {
-        String url = buildUrl("/requests");
+        String url = buildUrl("/request");
         log.debug("POST {} - create request", url);
         try {
             String requestBody = buildInputData(payload);
             String responseBody = restClient.post()
                     .uri(url)
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .accept(MediaType.parseMediaType("application/vnd.manageengine.sdp.v3+json"))
                     .headers(authStrategy::apply)
                     .body("input_data=" + requestBody)
                     .retrieve()
@@ -105,13 +106,14 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
             )
     )
     public void updateRequest(String requestId, SdpUpdateRequestPayload payload) {
-        String url = buildUrl("/requests/" + requestId);
+        String url = buildUrl("/request/" + requestId);
         log.debug("PUT {} - update request", url);
         try {
             String requestBody = buildInputData(payload);
             restClient.put()
                     .uri(url)
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .accept(MediaType.parseMediaType("application/vnd.manageengine.sdp.v3+json"))
                     .headers(authStrategy::apply)
                     .body("input_data=" + requestBody)
                     .retrieve()
@@ -149,13 +151,14 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
             )
     )
     public void addNote(String requestId, SdpAddNotePayload payload) {
-        String url = buildUrl("/requests/" + requestId + "/notes");
+        String url = buildUrl("/request/" + requestId + "/notes");
         log.debug("POST {} - add note", url);
         try {
             String requestBody = buildInputData("request_note", payload);
             restClient.post()
                     .uri(url)
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .accept(MediaType.parseMediaType("application/vnd.manageengine.sdp.v3+json"))
                     .headers(authStrategy::apply)
                     .body("input_data=" + requestBody)
                     .retrieve()
@@ -173,7 +176,7 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
                         throw new PermanentSdpException("Permanent HTTP 400: " + body);
                     })
                     .toBodilessEntity();
-        } catch (TransientSdpException | PermanentSdpException e) {
+    } catch (TransientSdpException | PermanentSdpException e) {
             throw e;
         } catch (RestClientException e) {
             throw new TransientSdpException("Connection error calling SDP addNote", e);
@@ -193,13 +196,14 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
             )
     )
     public void closeRequest(String requestId, SdpCloseRequestPayload payload) {
-        String url = buildUrl("/requests/" + requestId);
+        String url = buildUrl("/request/" + requestId);
         log.debug("PUT {} - close request", url);
         try {
             String requestBody = buildInputData(payload);
             restClient.put()
                     .uri(url)
                     .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .accept(MediaType.parseMediaType("application/vnd.manageengine.sdp.v3+json"))
                     .headers(authStrategy::apply)
                     .body("input_data=" + requestBody)
                     .retrieve()
@@ -297,6 +301,7 @@ public class ServiceDeskPlusClientImpl implements ServiceDeskPlusClient {
         try {
             String responseBody = restClient.get()
                     .uri(url)
+                    .accept(MediaType.parseMediaType("application/vnd.manageengine.sdp.v3+json"))
                     .headers(authStrategy::apply)
                     .retrieve()
                     .onStatus(this::isTransient, (req, res) -> {
