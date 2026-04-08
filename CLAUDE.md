@@ -6,23 +6,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Build (skip tests)
-mvn -B package -DskipTests
+./gradlew build -x test
 
 # Run all tests
-mvn test
+./gradlew test
 
 # Run a single test class
-mvn test -Dtest=MessageProcessingServiceTest
+./gradlew test --tests "com.fourimpact.sdpsinkconnector.service.MessageProcessingServiceTest"
 
 # Run a single test method
-mvn test -Dtest=MessageToSdpTransformerTest#toCreatePayload_mapsAllFields
+./gradlew test --tests "com.fourimpact.sdpsinkconnector.transformer.MessageToSdpTransformerTest.toCreatePayload_mapsAllFields"
 
 # Run the application locally (requires Kafka + env vars set)
-mvn spring-boot:run -Dspring-boot.run.profiles=local
+./gradlew bootRun --args='--spring.profiles.active=local'
 
 # Build the Docker image
 docker build -t sdp-sink-connector .
 ```
+
+On Windows use `gradlew.bat` instead of `./gradlew`.
 
 ## Architecture
 
